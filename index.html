@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>NextGen Backtest Lab</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #f5f5f5;
+      background: radial-gradient(circle at 0% 0%, #1b2845, #050816 60%, #020617);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .wrapper {
+      width: 100%;
+      max-width: 1100px;
+      display: grid;
+      grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+      gap: 24px;
+    }
+
+    .card {
+      background: rgba(15, 23, 42, 0.75);
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      box-shadow:
+        0 18px 45px rgba(15, 23, 42, 0.9),
+        0 0 0 1px rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(18px) saturate(140%);
+      -webkit-backdrop-filter: blur(18px) saturate(140%);
+      padding: 20px 22px;
+    }
+
+    h1 {
+      margin: 0 0 4px;
+      font-size: 22px;
+      letter-spacing: 0.04em;
+    }
+    .subtitle {
+      margin-bottom: 18px;
+      font-size: 12px;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      font-size: 13px;
+      color: #e5e7eb;
+    }
+    input, select {
+      margin-top: 4px;
+      width: 100%;
+      padding: 7px 9px;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.9);
+      color: #f9fafb;
+      font-size: 13px;
+      outline: none;
+    }
+    input:focus, select:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.6);
+    }
+
+    button {
+      margin-top: 16px;
+      width: 100%;
+      padding: 9px 14px;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(135deg, #22c55e, #22d3ee);
+      color: #020617;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      font-size: 12px;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 12px 30px rgba(34, 197, 94, 0.35);
+    }
+    button:disabled {
+      opacity: 0.7;
+      cursor: default;
+      box-shadow: none;
+    }
+
+    #error {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #f97373;
+      min-height: 16px;
+    }
+
+    #results h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-top: 6px;
+    }
+    th, td {
+      border-bottom: 1px solid rgba(55, 65, 81, 0.7);
+      padding: 6px 4px;
+      text-align: right;
+      color: #e5e7eb;
+    }
+    th {
+      text-align: left;
+      color: #9ca3af;
+      font-weight: 500;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      background: conic-gradient(
+        from 200deg,
+        #22c55e,
+        #22d3ee,
+        #a855f7,
+        #22c55e
+      );
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #020617;
+      font-weight: 800;
+      font-size: 16px;
+    }
+    .brand-title {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #e5e7eb;
+    }
+    .brand-caption {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    .chart-container {
+      margin-top: 16px;
+      height: 220px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      padding: 10px 12px;
+    }
+  </style>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="wrapper">
+    <!-- LEFT: FORM CARD -->
+    <div class="card">
+      <div class="brand">
+        <div class="brand-logo">N</div>
+        <div>
+          <div class="brand-title">NextGen Money Lab</div>
+          <div class="brand-caption">MA & RSI Backtest Console</div>
+        </div>
+      </div>
+
+      <h1>Strategy Inputs</h1>
+      <div class="subtitle">Tune your parameters and run a quick backtest</div>
+
+      <label>
+        Symbol
+        <input type="text" id="symbol" value="AAPL" />
+      </label>
+
+      <label>
+        Start date
+        <input type="date" id="startDate" value="2020-01-01" />
+      </label>
+
+      <label>
+        End date
+        <input type="date" id="endDate" value="2024-12-01" />
+      </label>
+
+      <label>
+        Short window
+        <input type="number" id="shortWindow" value="50" />
+      </label>
+
+      <label>
+        Long window
+        <input type="number" id="longWindow" value="200" />
+      </label>
+
+      <label>
+        Strategy
+        <select id="strategy">
+          <option value="ma">Moving Average</option>
+          <option value="rsi">RSI</option>
+        </select>
+      </label>
+
+      <button id="runBtn">Run backtest</button>
+      <div id="error"></div>
+    </div>
+
+    <!-- RIGHT: RESULTS CARD -->
+    <div class="card" id="results" style="display:none;">
+      <h2>Backtest Snapshot</h2>
+
+      <table>
+        <tbody>
+          <tr><th>Final value</th><td id="finalValue"></td></tr>
+          <tr><th>Total return</th><td id="totalReturn"></td></tr>
+          <tr><th>Annualized return</th><td id="annReturn"></td></tr>
+          <tr><th>Annualized volatility</th><td id="annVol"></td></tr>
+          <tr><th>Sharpe ratio</th><td id="sharpe"></td></tr>
+          <tr><th>Max drawdown</th><td id="maxDD"></td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="margin-top:16px;font-size:13px;">Trades</h3>
+      <table id="tradesTable">
+        <thead>
+          <tr><th>Date</th><th>Side</th><th style="text-align:right;">Price</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <h3 style="margin-top:16px;font-size:13px;">Equity curve</h3>
+      <div class="chart-container">
+        <canvas id="equityChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const btn = document.getElementById("runBtn");
+    const errorDiv = document.getElementById("error");
+    const resultsDiv = document.getElementById("results");
+    let equityChart = null;
+
+    btn.addEventListener("click", async () => {
+      errorDiv.textContent = "";
+      resultsDiv.style.display = "none";
+
+      const symbol = document.getElementById("symbol").value.trim();
+      const start_date = document.getElementById("startDate").value;
+      const end_date = document.getElementById("endDate").value;
+      const short_window = Number(document.getElementById("shortWindow").value);
+      const long_window = Number(document.getElementById("longWindow").value);
+      const strategy_type = document.getElementById("strategy").value;
+
+      if (!symbol) {
+        errorDiv.textContent = "Please enter a symbol.";
+        return;
+      }
+
+      const body = {
+        symbol,
+        start_date,
+        end_date,
+        short_window,
+        long_window,
+        strategy_type
+      };
+
+      try {
+        btn.disabled = true;
+        btn.textContent = "Running...";
+
+        const res = await fetch("http://127.0.0.1:8000/backtest", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || ("HTTP " + res.status));
+        }
+
+        const data = await res.json();
+        console.log(data);
+
+        // Metrics
+        document.getElementById("finalValue").textContent =
+          data.final_value.toFixed(2);
+        document.getElementById("totalReturn").textContent =
+          (data.total_return * 100).toFixed(2) + "%";
+        document.getElementById("annReturn").textContent =
+          (data.annualized_return * 100).toFixed(2) + "%";
+        document.getElementById("annVol").textContent =
+          (data.annualized_volatility * 100).toFixed(2) + "%";
+        document.getElementById("sharpe").textContent =
+          data.sharpe_ratio.toFixed(2);
+        document.getElementById("maxDD").textContent =
+          (data.max_drawdown * 100).toFixed(2) + "%";
+
+        // Trades table
+        const tradesBody = document
+          .getElementById("tradesTable")
+          .querySelector("tbody");
+        tradesBody.innerHTML = "";
+        (data.trades || []).forEach(t => {
+          const tr = document.createElement("tr");
+          tr.innerHTML =
+            `<td>${t.date}</td><td>${t.side}</td><td>${t.price.toFixed(2)}</td>`;
+          tradesBody.appendChild(tr);
+        });
+
+        // Equity curve chart
+        const len = Math.min(data.dates.length, data.equity_curve.length);
+        const labels = data.dates.slice(0, len);
+        const values = data.equity_curve.slice(0, len);
+
+        const ctx = document.getElementById("equityChart").getContext("2d");
+        if (equityChart) {
+          equityChart.destroy();
+        }
+
+        equityChart = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: labels,
+            datasets: [{
+              label: "Equity curve",
+              data: values,
+              borderColor: "#22c55e",
+              backgroundColor: "rgba(34,197,94,0.15)",
+              borderWidth: 2,
+              pointRadius: 0,
+              tension: 0.25
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: { mode: "index", intersect: false }
+            },
+            scales: {
+              x: {
+                ticks: {
+                  maxTicksLimit: 6,
+                  color: "#9ca3af"
+                },
+                grid: { display: false }
+              },
+              y: {
+                ticks: {
+                  color: "#9ca3af"
+                },
+                grid: {
+                  color: "rgba(31,41,55,0.7)"
+                }
+              }
+            }
+          }
+        });
+
+        resultsDiv.style.display = "block";
+      } catch (err) {
+        console.error(err);
+        errorDiv.textContent = "Error: " + err.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Run backtest";
+      }
+    });
+  </script>
+</body>
+</html>
+
+
+
